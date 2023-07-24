@@ -2,15 +2,42 @@ const { Sequelize, DataTypes } = require('sequelize');
 const sequelize = require('./db.js');
 
 const User = sequelize.define('User', {
-    username: { type: DataTypes.STRING, allowNull: false, unique: true },
-    password: { type: DataTypes.STRING, allowNull: false },
-    email: { type: DataTypes.STRING, allowNull: false, unique: true },
-    active: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false },
-    verified: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false },
-}, {
-    timestamps: true,
-    createdAt: 'created_at',
-    updatedAt: false
+    id: {
+        type: Sequelize.INTEGER,
+        primaryKey: true,
+        autoIncrement: true,
+        allowNull: false
+    },
+    username: {
+        type: Sequelize.STRING,
+        allowNull: false,
+        unique: true
+    },
+    password: {
+        type: Sequelize.STRING,
+        allowNull: false
+    },
+    email: {
+        type: Sequelize.STRING,
+        allowNull: false,
+        unique: true
+    },
+    active: {
+        type: Sequelize.BOOLEAN,
+        allowNull: false,
+        defaultValue: false
+    },
+    verified: {
+        type: Sequelize.BOOLEAN,
+        allowNull: false,
+        defaultValue: false
+    },
+    created_at: {
+        type: Sequelize.DATE,
+        allowNull: false,
+        defaultValue: Sequelize.NOW
+    }
 });
+
 
 module.exports = User;

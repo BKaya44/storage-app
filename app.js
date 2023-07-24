@@ -17,20 +17,25 @@ app.use(bodyParser.json());
 
 app.post('/register', async (req, res) => {
     const { username, password, email } = req.body;
+
     try {
-        const hashedPassword = await bcrypt.hash(password, 10);
+        const hashedPassword = await bcrypt.hash(password, saltRounds);
         const user = await User.create({ username, password: hashedPassword, email });
+        
+        const verificationKey = crypto.randomBytes(10).toString('hex');
+        await Verification.create({ user_id: user.id, text: verificationKey });
 
-		const verificationKey = crypto.randomBytes(10).toString('hex');
-		await Verification.create({ user_id: user.id, text: verificationKey });
+        await Mailer.sendVerificationEmail(email, verificationKey);
 
-		await Mailer.sendVerificationEmail(email, verificationKey);
+        const encryptedUserId = encrypt(user.id.toString());
 
-		const encryptedUserId = encrypt(user.id.toString());
-
-		res.status(201).json({ message: "User registered successfully", userId: encryptedUserId });
+        res.status(201).json({ message: "User registered successfully", userId: encryptedUserId });
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        if (error instanceof Sequelize.UniqueConstraintError) {
+            res.status(409).json({ message: "Username or email already exists" });
+        } else {
+            res.status(500).json({ error: error.message });
+        }
     }
 });
 
