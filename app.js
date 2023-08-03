@@ -9,12 +9,25 @@ const Verification = require('./models/Verification');
 const Mailer = require('./Mailer');
 const { encrypt, decrypt } = require('./Crypto');
 
-
 const app = express();
 
 app.use(cors());
 app.use(bodyParser.json());
 
+/**
+ * POST /register
+ * Registers a new user.
+ * 
+ * Body parameters:
+ * - username (string): The desired username.
+ * - password (string): The desired password.
+ * - email (string): The user's email address.
+ * 
+ * Responses:
+ * - 201 Created: User successfully registered.
+ * - 409 Conflict: Username or email already exists.
+ * - 500 Internal Server Error: Something went wrong.
+ */
 app.post('/register', async (req, res) => {
     const { username, password, email } = req.body;
 
@@ -39,6 +52,20 @@ app.post('/register', async (req, res) => {
     }
 });
 
+/**
+ * POST /verify
+ * Verifies a user's email address using a verification key.
+ * 
+ * Headers:
+ * - user-id (string): The encrypted user ID.
+ * - verification-key (string): The verification key sent to the user's email.
+ * 
+ * Responses:
+ * - 200 OK: User verified successfully.
+ * - 400 Bad Request: Missing user ID or verification key in headers.
+ * - 404 Not Found: Invalid or expired verification key.
+ * - 500 Internal Server Error: Something went wrong.
+ */
 app.post('/verify', async (req, res) => {
     const encryptedUserId = req.headers['user-id'];
     const verificationKey = req.headers['verification-key'];
@@ -60,6 +87,51 @@ app.post('/verify', async (req, res) => {
         res.status(200).json({ message: "User verified successfully" });
     } catch (error) {
         res.status(500).json({ error: error.message });
+    }
+});
+
+/**
+ * POST /login
+ * Authenticates a user and returns a JWT token.
+ * 
+ * Body parameters:
+ * - username (string): The username.
+ * - password (string): The password.
+ * 
+ * Responses:
+ * - 200 OK: Successful login, returns JWT token.
+ * - 401 Unauthorized: Invalid username or password.
+ * - 500 Internal Server Error: Something went wrong.
+ */
+app.post('/login', async (req, res) => {
+    const { username, password } = req.body;
+
+    try {
+        const user = await User.findOne({ where: { username } });
+
+        if (!user) {
+            return res.status(401).json({ error: 'Invalid username or password' });
+        }
+
+        const validPassword = await bcrypt.compare(password, user.password);
+
+        if (!validPassword) {
+            return res.status(401).json({ error: 'Invalid username or password' });
+        }
+
+        const token = jwt.sign(
+            {
+                id: user.id,
+                username: user.username,
+            },
+            SECRET_KEY,
+            { expiresIn: '1h' }
+        );
+
+        res.json({ token });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Something went wrong' });
     }
 });
 

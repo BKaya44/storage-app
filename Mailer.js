@@ -15,7 +15,7 @@ class Mailer {
         const mailOptions = {
             from: process.env.EMAIL_USERNAME,
             to,
-            subject: 'Account Verification',
+            subject: 'Account confirmation: verification',
             text: `Here is your verification key: ${verificationKey}`,
         };
 
