@@ -1,5 +1,5 @@
 const { Sequelize, DataTypes } = require('sequelize');
-const sequelize = require('./db.js');
+const sequelize = require('../db.js');
 
 const Verification = sequelize.define('Verification', {
     user_id: { type: DataTypes.INTEGER, allowNull: false },
