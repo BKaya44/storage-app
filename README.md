@@ -1,7 +1,25 @@
-## Storage application
+# Storage application
+The Storage Management Application is a comprehensive tool designed to manage and track users' stored items across various locations. It's intended to provide an organized interface for users to keep track of their belongings, whether in their personal storages or shared facilities.
 
-# Database
+## Key Features
+- User Authentication: The application offers a secure user registration, login, and verification process. Users can register with a unique username and email and are required to verify their accounts through a generated verification key.
+- Storage Management: Users can create, edit, and delete storage locations, including adding detailed descriptions and physical locations.
+- Item Tracking: Within each storage, users can maintain a record of individual items, including their names, descriptions, and quantities.
+- Image Support: Users can upload images for both storages and individual items, providing a visual catalog of what's stored where.
+- Logging and Verification: The application maintains logs of significant events and enables a detailed verification process for added security.
+- API-Driven Architecture: Built using Node.js, the application exposes a set of RESTful APIs to interact with the underlying PostgreSQL database, enabling seamless integration with various frontend frameworks.
+- Security Measures: Employing packages like "bcrypt" for password hashing and "jsonwebtoken" for token generation, the application maintains high standards of security.
+- Email Integration: Through a dedicated mailer class, the application handles sending verification and notification emails to users.
 
+## Installation & Usage
+1. Clone this repository `git clone https://github.com/BKaya44/storage-app.git`
+2. Install dependencies by running command in root folder of cloned repo  ```npm install```
+3. Copy and edit the `sample.env` to `.env` and change the configurations.
+5. Start server by running command ``` npm run dev ```
+6. Open browser window and navigate to http://localhost:3000/
+7. Enjoy!
+
+## Database
 ```sql
 CREATE TABLE Users (
     id SERIAL PRIMARY KEY,
