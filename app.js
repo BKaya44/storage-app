@@ -1,22 +1,15 @@
 const express = require("express");
-const bodyParser = require("body-parser");
-const cors = require("cors");
-const bcrypt = require("bcrypt");
 const crypto = require("crypto");
 const SECRET_KEY = process.env.SECRET_KEY;
 const jwt = require("jsonwebtoken");
-const { Sequelize } = require("sequelize");
 
 const User = require("./models/User");
 const Verification = require("./models/Verification");
 const Storage = require("./models/Storage");
-const Mailer = require("./Mailer");
 const { encrypt, decrypt } = require("./Crypto");
-
 const app = express();
 
-app.use(cors());
-app.use(bodyParser.json());
+app.use(express.json());
 
 function authenticate(req, res, next) {
   const token = req.headers["authorization"];
@@ -50,35 +43,27 @@ function authenticate(req, res, next) {
  */
 app.post("/register", async (req, res) => {
   const { username, password, email } = req.body;
-  const saltRounds = 10;
 
   try {
-    const hashedPassword = await bcrypt.hash(password, saltRounds);
-    const user = await User.create({
+    const user = await User.createUser(
       username,
-      password: hashedPassword,
+      password,
       email,
+    );
+
+    // const verificationKey = crypto.randomBytes(10).toString("hex");
+    // await Verification.create({ user_id: user.id, text: verificationKey });
+
+    //TODO: Add mailer
+    //await Mailer.sendVerificationEmail(email, verificationKey);
+
+    //const encryptedUserId = encrypt(user.id.toString());
+
+    res.status(201).json({
+      message: "User registered successfully"
     });
-
-    const verificationKey = crypto.randomBytes(10).toString("hex");
-    await Verification.create({ user_id: user.id, text: verificationKey });
-
-    await Mailer.sendVerificationEmail(email, verificationKey);
-
-    const encryptedUserId = encrypt(user.id.toString());
-
-    res
-      .status(201)
-      .json({
-        message: "User registered successfully",
-        userId: encryptedUserId,
-      });
   } catch (error) {
-    if (error instanceof Sequelize.UniqueConstraintError) {
-      res.status(409).json({ message: "Username or email already exists" });
-    } else {
-      res.status(500).json({ message: error.message });
-    }
+    res.status(500).json({ message: error.message });
   }
 });
 
@@ -152,7 +137,7 @@ app.post("/login", async (req, res) => {
       return res.status(401).json({ message: "Invalid username or password" });
     }
 
-    const validPassword = await bcrypt.compare(password, user.password);
+    const validPassword = password;
 
     if (!validPassword) {
       return res.status(401).json({ message: "Invalid username or password" });
@@ -285,15 +270,15 @@ app.delete("/storages/:id", authenticate, async (req, res) => {
  * Handles 404 Not Found
  */
 app.use((req, res, next) => {
-    res.status(404).json({ message: 'Not Found' });
+  res.status(404).json({ message: "Not Found" });
 });
 
 /**
  * Error handling middleware
  */
 app.use((error, req, res, next) => {
-    console.error(error);
-    res.status(500).json({ message: 'Something went wrong' });
+  console.error(error);
+  res.status(500).json({ message: "Something went wrong" });
 });
 
 app.listen(3000, () => console.log("Server started on port 3000"));

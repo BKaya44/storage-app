@@ -1,88 +1,25 @@
-const { Sequelize, DataTypes } = require('sequelize');
-const sequelize = require('../db.js');
+const db = require('../db.js');
+const { doc, setDoc, collection } = require('firebase/firestore');
 
-const User = require('./User');
+async function addStorage(userId, name, description, location) {
+  const storageRef = doc(collection(db, 'storages'));
+  await setDoc(storageRef, {
+    userId,
+    name,
+    description,
+    location,
+    createdAt: new Date()
+  });
+}
 
-const Storage = sequelize.define('Storage', {
-  name: {
-    type: DataTypes.STRING(255),
-    allowNull: false,
-  },
-  description: {
-    type: DataTypes.TEXT,
-    allowNull: true,
-  },
-  location: {
-    type: DataTypes.STRING(255),
-    allowNull: false,
-  },
-  created_at: {
-    type: DataTypes.DATE,
-    allowNull: false,
-    defaultValue: DataTypes.NOW,
-  },
-});
+async function getStoragesByUserId(userId) {
+  const q = query(collection(db, 'storages'), where('userId', '==', userId));
+  const querySnapshot = await getDocs(q);
+  const storages = [];
+  querySnapshot.forEach((doc) => {
+    storages.push({ id: doc.id, ...doc.data() });
+  });
+  return storages;
+}
 
-const StorageImage = sequelize.define('StorageImage', {
-  path: {
-    type: DataTypes.TEXT,
-    allowNull: false,
-  },
-  created_at: {
-    type: DataTypes.DATE,
-    allowNull: false,
-    defaultValue: DataTypes.NOW,
-  },
-});
-
-const Item = sequelize.define('Item', {
-  name: {
-    type: DataTypes.STRING(255),
-    allowNull: false,
-  },
-  description: {
-    type: DataTypes.TEXT,
-    allowNull: true,
-  },
-  amount: {
-    type: DataTypes.INTEGER,
-    allowNull: false,
-  },
-  created_at: {
-    type: DataTypes.DATE,
-    allowNull: false,
-    defaultValue: DataTypes.NOW,
-  },
-});
-
-const ItemImage = sequelize.define('ItemImage', {
-  path: {
-    type: DataTypes.TEXT,
-    allowNull: false,
-  },
-  created_at: {
-    type: DataTypes.DATE,
-    allowNull: false,
-    defaultValue: DataTypes.NOW,
-  },
-});
-
-User.hasMany(Storage, { foreignKey: 'user_id' });
-Storage.belongsTo(User, { foreignKey: 'user_id' });
-
-Storage.hasMany(StorageImage, { foreignKey: 'storage_id' });
-StorageImage.belongsTo(Storage, { foreignKey: 'storage_id' });
-
-Storage.hasMany(Item, { foreignKey: 'storage_id' });
-Item.belongsTo(Storage, { foreignKey: 'storage_id' });
-
-User.hasMany(StorageImage, { foreignKey: 'user_id' });
-StorageImage.belongsTo(User, { foreignKey: 'user_id' });
-
-User.hasMany(ItemImage, { foreignKey: 'user_id' });
-ItemImage.belongsTo(User, { foreignKey: 'user_id' });
-
-Item.hasMany(ItemImage, { foreignKey: 'item_id' });
-ItemImage.belongsTo(Item, { foreignKey: 'item_id' });
-
-module.exports = { Storage, StorageImage, Item, ItemImage };
+module.exports = { addStorage, getStoragesByUserId};

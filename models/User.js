@@ -1,43 +1,20 @@
-const { Sequelize, DataTypes } = require('sequelize');
-const sequelize = require('../db.js');
+const { admin, db } = require('../db.js');
 
-const User = sequelize.define('User', {
-    id: {
-        type: Sequelize.INTEGER,
-        primaryKey: true,
-        autoIncrement: true,
-        allowNull: false
-    },
-    username: {
-        type: Sequelize.STRING,
-        allowNull: false,
-        unique: true
-    },
-    password: {
-        type: Sequelize.STRING,
-        allowNull: false
-    },
-    email: {
-        type: Sequelize.STRING,
-        allowNull: false,
-        unique: true
-    },
-    active: {
-        type: Sequelize.BOOLEAN,
-        allowNull: false,
-        defaultValue: false
-    },
-    verified: {
-        type: Sequelize.BOOLEAN,
-        allowNull: false,
-        defaultValue: false
-    },
-    created_at: {
-        type: Sequelize.DATE,
-        allowNull: false,
-        defaultValue: Sequelize.NOW
-    }
-});
+async function createUser(username, password, email) {
+  const userRecord = await admin.auth().createUser({
+    email,
+    password
+  });
 
+  await db.collection('users').doc(userRecord.uid).set({
+    username,
+    email,
+    active: true,
+    verified: false,
+    createdAt: admin.firestore.FieldValue.serverTimestamp()
+  });
 
-module.exports = User;
+  return userRecord;
+}
+
+module.exports = { createUser };
