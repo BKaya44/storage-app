@@ -72,7 +72,7 @@ CREATE TABLE Logs (
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE Verification (
+CREATE TABLE Verifications (
     id SERIAL PRIMARY KEY,
     user_id INTEGER REFERENCES Users(id),
     verification_text TEXT NOT NULL,

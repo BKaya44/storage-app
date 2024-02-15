@@ -50,34 +50,38 @@ function authenticate(req, res, next) {
  */
 app.post("/register", async (req, res) => {
   const { username, password, email } = req.body;
-  const saltRounds = 10;
+
+  if (!/^[A-Za-z0-9]*$/.test(username)) {
+    return res
+      .status(409)
+      .json({ message: "Username can only contain letters and numbers." });
+  }
 
   try {
-    const hashedPassword = await bcrypt.hash(password, saltRounds);
     const user = await User.create({
       username,
-      password: hashedPassword,
+      password,
       email,
     });
 
-    const verificationKey = crypto.randomBytes(10).toString("hex");
-    await Verification.create({ user_id: user.id, text: verificationKey });
+    const verificationKey = crypto.randomBytes(16).toString("hex");
+    await Verification.create({ user_id: user.id, verification_text: verificationKey });
 
-    await Mailer.sendVerificationEmail(email, verificationKey);
+    // await Mailer.sendVerificationEmail(email, verificationKey);
 
     const encryptedUserId = encrypt(user.id.toString());
 
-    res
-      .status(201)
-      .json({
-        message: "User registered successfully",
-        userId: encryptedUserId,
-      });
+    return res.status(201).json({
+      message: "User registered successfully",
+      userId: encryptedUserId,
+    });
   } catch (error) {
     if (error instanceof Sequelize.UniqueConstraintError) {
-      res.status(409).json({ message: "Username or email already exists" });
+      return res
+        .status(409)
+        .json({ message: "Username or email already exists" });
     } else {
-      res.status(500).json({ message: error.message });
+      return res.status(500).json({ message: error.message });
     }
   }
 });
@@ -285,15 +289,15 @@ app.delete("/storages/:id", authenticate, async (req, res) => {
  * Handles 404 Not Found
  */
 app.use((req, res, next) => {
-    res.status(404).json({ message: 'Not Found' });
+  res.status(404).json({ message: "Not Found" });
 });
 
 /**
  * Error handling middleware
  */
 app.use((error, req, res, next) => {
-    console.error(error);
-    res.status(500).json({ message: 'Something went wrong' });
+  console.error(error);
+  res.status(500).json({ message: "Something went wrong" });
 });
 
 app.listen(3000, () => console.log("Server started on port 3000"));
