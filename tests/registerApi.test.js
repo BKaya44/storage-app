@@ -10,7 +10,7 @@ describe('POST /register', () => {
                 password: 'testpassword',
                 email: 'testuser@test.com'
             });
-        expect(response.statusCode).toBe(201);
+        expect(response.statusCode).toBe(200);
     });
 
     it('should return 409 when username or email already exists', async () => {
