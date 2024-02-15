@@ -1,9 +1,8 @@
-const { Sequelize, DataTypes } = require('sequelize');
-const sequelize = require('../db.js');
-
+const { DataTypes } = require('sequelize');
+const db = require('../config/db.js');
 const User = require('./user.js');
 
-const Storage = sequelize.define('Storage', {
+const Storage = db.define('Storage', {
   name: {
     type: DataTypes.STRING(255),
     allowNull: false,
@@ -23,7 +22,7 @@ const Storage = sequelize.define('Storage', {
   },
 });
 
-const StorageImage = sequelize.define('StorageImage', {
+const StorageImage = db.define('StorageImage', {
   path: {
     type: DataTypes.TEXT,
     allowNull: false,
@@ -35,7 +34,7 @@ const StorageImage = sequelize.define('StorageImage', {
   },
 });
 
-const Item = sequelize.define('Item', {
+const Item = db.define('Item', {
   name: {
     type: DataTypes.STRING(255),
     allowNull: false,
@@ -55,7 +54,7 @@ const Item = sequelize.define('Item', {
   },
 });
 
-const ItemImage = sequelize.define('ItemImage', {
+const ItemImage = db.define('ItemImage', {
   path: {
     type: DataTypes.TEXT,
     allowNull: false,

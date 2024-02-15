@@ -7,7 +7,7 @@ The Storage Management Application is a comprehensive tool designed to manage an
 - Item Tracking: Within each storage, users can maintain a record of individual items, including their names, descriptions, and quantities.
 - Image Support: Users can upload images for both storages and individual items, providing a visual catalog of what's stored where.
 - Logging and Verification: The application maintains logs of significant events and enables a detailed verification process for added security.
-- API-Driven Architecture: Built using Node.js, the application exposes a set of RESTful APIs to interact with the underlying PostgreSQL database, enabling seamless integration with various frontend frameworks.
+- API-Driven Architecture: Built using Node.js, the application exposes a set of RESTful APIs to interact with the underlying MySQL database, enabling seamless integration with various frontend frameworks.
 - Security Measures: Employing packages like "bcrypt" for password hashing and "jsonwebtoken" for token generation, the application maintains high standards of security.
 - Email Integration: Through a dedicated mailer class, the application handles sending verification and notification emails to users.
 
@@ -22,7 +22,6 @@ The Storage Management Application is a comprehensive tool designed to manage an
 ## Data rules
 
 - Username can only have between 5 to 20 characters
-
 
 ## Database
 ```sql
