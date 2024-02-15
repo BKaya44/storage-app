@@ -1,10 +1,9 @@
 require('dotenv').config();
-var admin = require("firebase-admin");
+const { initializeApp, applicationDefault } = require("firebase-admin/app");
+const { getFirestore } = require("firebase-admin/firestore");
 
-var serviceAccount = require("./serviceAccountKey.json");
-
-admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount)
+initializeApp({
+  credential: applicationDefault(),
 });
 
 // const firebaseConfig = {
@@ -17,6 +16,6 @@ admin.initializeApp({
 //   measurementId: process.env.FIREBASE_MEASUREMENT_ID
 // };
 
-const db = admin.firestore();
+const db = getFirestore();
 
-module.exports = { admin, db };
+module.exports = { db };

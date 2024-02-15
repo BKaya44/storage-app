@@ -1,5 +1,4 @@
 const express = require("express");
-const crypto = require("crypto");
 const SECRET_KEY = process.env.SECRET_KEY;
 const jwt = require("jsonwebtoken");
 
@@ -37,7 +36,7 @@ function authenticate(req, res, next) {
  * - email (string): The user's email address.
  *
  * Responses:
- * - 201 Created: User successfully registered.
+ * - 200 OK: User successfully registered.
  * - 409 Conflict: Username or email already exists.
  * - 500 Internal Server Error: Something went wrong.
  */
@@ -45,11 +44,10 @@ app.post("/register", async (req, res) => {
   const { username, password, email } = req.body;
 
   try {
-    const user = await User.createUser(
-      username,
-      password,
-      email,
-    );
+    const user = await User.createUser(username, password, email);
+    if(user.error){
+      return res.status(500).json({ message: user.message });
+    }
 
     // const verificationKey = crypto.randomBytes(10).toString("hex");
     // await Verification.create({ user_id: user.id, text: verificationKey });
@@ -59,11 +57,11 @@ app.post("/register", async (req, res) => {
 
     //const encryptedUserId = encrypt(user.id.toString());
 
-    res.status(201).json({
-      message: "User registered successfully"
+    return res.status(200).json({
+      message: "User registered successfully",
     });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    return res.status(500).json({ message: error.message });
   }
 });
 
@@ -119,28 +117,24 @@ app.post("/verify", async (req, res) => {
  * Authenticates a user and returns a JWT token.
  *
  * Body parameters:
- * - username (string): The username.
+ * - email (string): The email.
  * - password (string): The password.
  *
  * Responses:
  * - 200 OK: Successful login, returns JWT token.
- * - 401 Unauthorized: Invalid username or password.
+ * - 401 Unauthorized: Invalid email or password.
  * - 500 Internal Server Error: Something went wrong.
  */
 app.post("/login", async (req, res) => {
-  const { username, password } = req.body;
+  const { email, password } = req.body;
 
   try {
-    const user = await User.findOne({ where: { username } });
-
-    if (!user) {
-      return res.status(401).json({ message: "Invalid username or password" });
-    }
-
     const validPassword = password;
+    const user = await User.findUserByEmail(email);
+    const result = await User.verifyUserPassword(email, password);
 
-    if (!validPassword) {
-      return res.status(401).json({ message: "Invalid username or password" });
+    if (!user || !validPassword || !result.valid) {
+      return res.status(401).json({ message: "Invalid email or password" });
     }
 
     const token = jwt.sign(
@@ -169,7 +163,7 @@ app.post("/login", async (req, res) => {
  * - location (string): Location of the storage.
  *
  * Responses:
- * - 201 Created: Storage successfully created.
+ * - 200 OK: Storage successfully created.
  * - 401 Unauthorized: Authentication token required.
  * - 403 Forbidden: Invalid authentication token.
  * - 500 Internal Server Error: Something went wrong.
@@ -184,7 +178,7 @@ app.post("/storages", authenticate, async (req, res) => {
       description,
       location,
     });
-    res.status(201).json(storage);
+    res.status(200).json(storage);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
