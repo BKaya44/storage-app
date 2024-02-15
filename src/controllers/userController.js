@@ -1,9 +1,9 @@
 const bcrypt = require("bcrypt");
 const Sequelize = require("sequelize");
 const crypto = require("crypto");
+const jwt = require("jsonwebtoken");
 const User = require("../models/user");
 const Verification = require("../models/verification");
-const { encrypt, decrypt } = require("../middleware/cryptoMiddleware");
 
 const SECRET_KEY = process.env.SECRET_KEY;
 
@@ -23,6 +23,17 @@ const SECRET_KEY = process.env.SECRET_KEY;
  */
 const register = async (req, res, next) => {
   const { username, password, email } = req.body;
+  if (
+    typeof username === "undefined" ||
+    typeof password === "undefined" ||
+    typeof email === "undefined"
+  ) {
+    return res.status(409).json({ message: "Incorrect usage of API." });
+  } else {
+    if (username.length < 5 || username.length > 20 || password.length < 6 || email.length < 6) {
+      return res.status(409).json({ message: "Incorrect usage of API." });
+    }
+  }
 
   if (!/^[A-Za-z0-9]*$/.test(username)) {
     return res
@@ -45,11 +56,8 @@ const register = async (req, res, next) => {
 
     // await Mailer.sendVerificationEmail(email, verificationKey);
 
-    const encryptedUserId = encrypt(user.id.toString());
-
     return res.status(200).json({
-      message: "User registered successfully",
-      userId: encryptedUserId,
+      message: "User registered successfully"
     });
   } catch (error) {
     if (error instanceof Sequelize.UniqueConstraintError) {
@@ -66,30 +74,26 @@ const register = async (req, res, next) => {
  * POST /verify
  * Verifies a user's email address using a verification key.
  *
- * Headers:
- * - user-id (string): The encrypted user ID.
- * - verification-key (string): The verification key sent to the user's email.
+ * Query:
+ * - verification (string): The verification key sent to the user's email.
  *
  * Responses:
  * - 200 OK: User verified successfully.
- * - 400 Bad Request: Missing user ID or verification key in headers.
+ * - 400 Bad Request: Missing verification key.
  * - 404 Not Found: Invalid or expired verification key.
  * - 500 Internal Server Error: Something went wrong.
  */
 const verify = async (req, res) => {
-  const encryptedUserId = req.headers["user-id"];
-  const verificationKey = req.headers["verification-key"];
-  if (!encryptedUserId || !verificationKey) {
+  const verificationKey = req.query["verification-key"];
+  if (!verificationKey) {
     return res
       .status(400)
-      .json({ message: "Missing user ID or verification key in headers" });
+      .json({ message: "Incorrect verification." });
   }
-
-  const userId = decrypt(encryptedUserId);
-
+  
   try {
     const verification = await Verification.findOne({
-      where: { user_id: userId, text: verificationKey, active: true },
+      where: { verification_text: verificationKey, active: true },
     });
     if (!verification) {
       return res
@@ -97,7 +101,7 @@ const verify = async (req, res) => {
         .json({ message: "Invalid or expired verification key" });
     }
 
-    await User.update({ verified: true }, { where: { id: userId } });
+    await User.update({ verified: true }, { where: { id: verification.user_id } });
     await Verification.update(
       { active: false },
       { where: { id: verification.id } }

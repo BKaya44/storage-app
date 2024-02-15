@@ -19,6 +19,11 @@ The Storage Management Application is a comprehensive tool designed to manage an
 6. Open browser window and navigate to http://localhost:3000/
 7. Enjoy!
 
+## Data rules
+
+- Username can only have between 5 to 20 characters
+
+
 ## Database
 ```sql
 CREATE TABLE Users (
