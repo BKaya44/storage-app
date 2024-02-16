@@ -1,4 +1,5 @@
 const { Storage } = require("../models/storage");
+const Sequelize = require("sequelize");
 
 /**
  * POST /storages
@@ -37,8 +38,6 @@ const createStorage = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
-
-
 
 /**
  * PUT /storages/:id
@@ -97,7 +96,7 @@ const editStorage = async (req, res) => {
  * - 404 Not Found: Storage not found.
  * - 500 Internal Server Error: Something went wrong.
  */
-// app.delete("/storages/:id", authenticate, async (req, res) => {
+// const editStorage = async (req, res) => {
 //   const storageId = req.params.id;
 
 //   try {
@@ -114,7 +113,49 @@ const editStorage = async (req, res) => {
 //   } catch (error) {
 //     res.status(500).json({ message: error.message });
 //   }
-// });
+// };
 
+const viewStorage = async (req, res) => {
+  const storageId = req.params.id;
+  try {
+    const storage = await Storage.findOne({
+      attributes: ["name","description","location","created_at"],
+      where: { id: storageId, user_id: req.user.id },
+    });
 
-module.exports = { createStorage, editStorage };
+    if (storage === null) {
+      return res.status(404).json({ message: "Storage does not exist." });
+    }
+
+    res.status(200).json(storage);
+  } catch (error) {
+    if (error instanceof Sequelize.EmptyResultError) {
+      return res.status(404).json({ message: "Storage does not exist." });
+    } else {
+      return res.status(500).json({ message: error.message });
+    }
+  }
+};
+
+const viewAllStorage = async (req, res) => {
+  try {
+    const storage = await Storage.findAll({
+      attributes: ["name","description","location","created_at"],
+      where: { user_id: req.user.id },
+    });
+
+    if (storage === null) {
+      return res.status(404).json({ message: "Storage does not exist." });
+    }
+    
+    res.status(200).json(storage);
+  } catch (error) {
+    if (error instanceof Sequelize.EmptyResultError) {
+      return res.status(404).json({ message: "User does not have any storages." });
+    } else {
+      return res.status(500).json({ message: error.message });
+    }
+  }
+};
+
+module.exports = { createStorage, editStorage, viewStorage, viewAllStorage };

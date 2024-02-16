@@ -28,16 +28,16 @@ const register = async (req, res, next) => {
     typeof password === "undefined" ||
     typeof email === "undefined"
   ) {
-    return res.status(409).json({ message: "Incorrect usage of API." });
+    return res.status(400).json({ message: "Incorrect usage of API." });
   } else {
     if (username.length < 5 || username.length > 20 || password.length < 6 || email.length < 6) {
-      return res.status(409).json({ message: "Incorrect usage of API." });
+      return res.status(400).json({ message: "Incorrect usage of API." });
     }
   }
 
   if (!/^[A-Za-z0-9]*$/.test(username)) {
     return res
-      .status(409)
+      .status(400)
       .json({ message: "Username can only contain letters and numbers." });
   }
 

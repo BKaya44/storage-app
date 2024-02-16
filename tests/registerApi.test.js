@@ -13,7 +13,7 @@ describe('POST /register', () => {
         expect(response.statusCode).toBe(200);
     });
 
-    it('should return 409 when username or email already exists', async () => {
+    it('should return 400 when username or email already exists', async () => {
         const response = await request(app)
             .post('/register')
             .send({
@@ -21,7 +21,7 @@ describe('POST /register', () => {
                 password: 'testpassword',
                 email: 'existinguser@test.com'
             });
-        expect(response.statusCode).toBe(409);
+        expect(response.statusCode).toBe(400);
     });
 
     it('should return 500 when server error occurs', async () => {
