@@ -22,9 +22,9 @@ const createItemStorage = async (req, res) => {
       amount,
     });
 
-    res.status(200).json(newStorageItem);
+    return res.status(200).json(newStorageItem);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    return res.status(500).json({ message: error.message });
   }
 };
 

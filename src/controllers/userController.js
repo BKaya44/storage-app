@@ -12,40 +12,31 @@ const SECRET_KEY = process.env.SECRET_KEY;
  * Registers a new user.
  *
  * Body parameters:
- * - username (string): The desired username.
- * - password (string): The desired password.
  * - email (string): The user's email address.
+ * - password (string): The desired password.
  *
  * Responses:
  * - 200 Created: User successfully registered.
- * - 409 Conflict: Username or email already exists.
+ * - 409 Conflict: User email already exists.
  * - 500 Internal Server Error: Something went wrong.
  */
 const register = async (req, res, next) => {
-  const { username, password, email } = req.body;
+  const { password, email } = req.body;
   if (
-    typeof username === "undefined" ||
-    typeof password === "undefined" ||
-    typeof email === "undefined"
+    typeof email === "undefined" ||
+    typeof password === "undefined"
   ) {
     return res.status(400).json({ message: "Incorrect usage of API." });
   } else {
-    if (username.length < 5 || username.length > 20 || password.length < 6 || email.length < 6) {
+    if (password.length < 6 || email.length < 6) {
       return res.status(400).json({ message: "Incorrect usage of API." });
     }
   }
 
-  if (!/^[A-Za-z0-9]*$/.test(username)) {
-    return res
-      .status(400)
-      .json({ message: "Username can only contain letters and numbers." });
-  }
-
   try {
     const user = await User.create({
-      username,
-      password,
       email,
+      password,
     });
 
     const verificationKey = crypto.randomBytes(16).toString("hex");
@@ -63,7 +54,7 @@ const register = async (req, res, next) => {
     if (error instanceof Sequelize.UniqueConstraintError) {
       return res
         .status(409)
-        .json({ message: "Username or email already exists" });
+        .json({ message: "Email already exists" });
     } else {
       return res.status(500).json({ message: error.message });
     }
@@ -107,9 +98,9 @@ const verify = async (req, res) => {
       { where: { id: verification.id } }
     );
 
-    res.status(200).json({ message: "User verified successfully" });
+    return res.status(200).json({ message: "User verified successfully" });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    return res.status(500).json({ message: error.message });
   }
 };
 
@@ -118,43 +109,43 @@ const verify = async (req, res) => {
  * Authenticates a user and returns a JWT token.
  *
  * Body parameters:
- * - username (string): The username.
+ * - email (string): The user email.
  * - password (string): The password.
  *
  * Responses:
  * - 200 OK: Successful login, returns JWT token.
- * - 401 Unauthorized: Invalid username or password.
+ * - 401 Unauthorized: Invalid email or password.
  * - 500 Internal Server Error: Something went wrong.
  */
 const login = async (req, res) => {
-  const { username, password } = req.body;
+  const { email, password } = req.body;
 
   try {
-    const user = await User.findOne({ where: { username } });
+    const user = await User.findOne({ where: { email } });
 
     if (!user) {
-      return res.status(401).json({ message: "Invalid username or password" });
+      return res.status(401).json({ message: "Invalid email or password" });
     }
 
     const validPassword = await bcrypt.compare(password, user.password);
 
     if (!validPassword) {
-      return res.status(401).json({ message: "Invalid username or password" });
+      return res.status(401).json({ message: "Invalid email or password" });
     }
 
     const token = jwt.sign(
       {
         id: user.id,
-        username: user.username,
+        email: user.email,
       },
       SECRET_KEY,
-      { expiresIn: "1h" }
+      { expiresIn: "30d" }
     );
 
-    res.json({ token });
+    return res.status(200).json({ token });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: "Something went wrong" });
+    return res.status(500).json({ message: "Something went wrong" });
   }
 };
 

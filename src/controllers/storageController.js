@@ -33,9 +33,9 @@ const createStorage = async (req, res) => {
       description,
       location,
     });
-    res.status(200).json(storage);
+    return res.status(200).json(storage);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    return res.status(500).json({ message: error.message });
   }
 };
 
@@ -76,9 +76,9 @@ const editStorage = async (req, res) => {
     storage.location = location || storage.location;
     await storage.save();
 
-    res.status(200).json(storage);
+    return res.status(200).json(storage);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    return res.status(500).json({ message: error.message });
   }
 };
 
@@ -148,7 +148,7 @@ const viewAllStorage = async (req, res) => {
       return res.status(404).json({ message: "Storage does not exist." });
     }
     
-    res.status(200).json(storage);
+    return res.status(200).json(storage);
   } catch (error) {
     if (error instanceof Sequelize.EmptyResultError) {
       return res.status(404).json({ message: "User does not have any storages." });
